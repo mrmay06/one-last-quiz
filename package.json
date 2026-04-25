@@ -1,0 +1,10 @@
+{
+  "name": "one-last-quiz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Top-level marker — Remotion lives in /remotion",
+  "scripts": {
+    "studio": "cd remotion && npm run studio",
+    "render": "cd remotion && npm run render"
+  }
+}

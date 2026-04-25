@@ -1,0 +1,86 @@
+"""Facebook Reels publisher via Graph API.
+
+Wired up but disabled by default. Enable by setting:
+  FACEBOOK_ENABLED=true
+  FACEBOOK_PAGE_ID=...
+  FACEBOOK_PAGE_ACCESS_TOKEN=...
+
+Uses the Reels resumable upload flow:
+  1. POST /{page-id}/video_reels?upload_phase=start  → video_id, upload_url
+  2. POST upload_url with Authorization + file_url or binary  → upload
+  3. POST /{page-id}/video_reels?upload_phase=finish&video_id=...&video_state=PUBLISHED
+"""
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+from typing import Any
+
+import requests
+
+from src import config
+
+log = logging.getLogger(__name__)
+
+GRAPH = "https://graph.facebook.com/v20.0"
+RUPLOAD = "https://rupload.facebook.com/video-upload/v20.0"
+
+
+class FacebookPublisher:
+    name = "facebook"
+
+    def publish(self, video_path: Path, metadata: dict[str, Any]) -> str:
+        if not config.FACEBOOK_ENABLED:
+            raise RuntimeError("Facebook publishing is disabled (FACEBOOK_ENABLED=false)")
+        if not (config.FACEBOOK_PAGE_ID and config.FACEBOOK_PAGE_ACCESS_TOKEN):
+            raise RuntimeError("FACEBOOK_PAGE_ID / FACEBOOK_PAGE_ACCESS_TOKEN not set")
+
+        token = config.FACEBOOK_PAGE_ACCESS_TOKEN
+        page_id = config.FACEBOOK_PAGE_ID
+
+        # Phase 1: start
+        start = requests.post(
+            f"{GRAPH}/{page_id}/video_reels",
+            params={"upload_phase": "start", "access_token": token},
+            timeout=30,
+        )
+        start.raise_for_status()
+        sd = start.json()
+        video_id = sd["video_id"]
+        log.info("FB Reels: started upload, video_id=%s", video_id)
+
+        # Phase 2: upload binary to rupload endpoint
+        size = video_path.stat().st_size
+        with video_path.open("rb") as f:
+            up = requests.post(
+                f"{RUPLOAD}/{video_id}",
+                headers={
+                    "Authorization": f"OAuth {token}",
+                    "offset": "0",
+                    "file_size": str(size),
+                },
+                data=f,
+                timeout=300,
+            )
+        up.raise_for_status()
+        log.info("FB Reels: binary uploaded (%d bytes)", size)
+
+        # Phase 3: finish + publish
+        description = (
+            f"{metadata['youtube_title']}\n\n{metadata['youtube_description']}"
+        )
+        finish = requests.post(
+            f"{GRAPH}/{page_id}/video_reels",
+            params={
+                "upload_phase": "finish",
+                "video_id": video_id,
+                "video_state": "PUBLISHED",
+                "description": description,
+                "access_token": token,
+            },
+            timeout=60,
+        )
+        finish.raise_for_status()
+        url = f"https://www.facebook.com/reel/{video_id}"
+        log.info("FB Reels: published %s", url)
+        return url
