@@ -1,87 +1,53 @@
-import { AbsoluteFill, Audio, Sequence, interpolate, useCurrentFrame } from "remotion";
-import { CountdownTimer } from "../components/CountdownTimer";
-import { HookOverlay } from "../components/HookOverlay";
-import { KenBurnsImage } from "../components/KenBurnsImage";
-import { RevealCard } from "../components/RevealCard";
+import { AbsoluteFill, Audio, interpolate, useVideoConfig } from "remotion";
+import { Cliffhanger } from "../components/Cliffhanger";
+import { HookBanner } from "../components/HookBanner";
+import { KineticCaptions, type WordTiming } from "../components/KineticCaptions";
+import { MultiImageBg, type ImageCut } from "../components/MultiImageBg";
 import { theme } from "../styles/theme";
 
 export type AtmosphericProps = {
-  imageUrl: string;
   hook: string;
-  puzzleText: string;
-  answer: string;
+  cta: string;
+  imageCuts: ImageCut[];
   voiceoverPath: string;
   bgMusicPath: string;
+  captions: WordTiming[];
+  cliffhangerStartFrame: number;
+  hookDurationFrames: number;
 };
+
+const MUSIC_BASE = 0.14;
+const MUSIC_FADE_FRAMES = 45;
 
 export const AtmosphericPuzzle: React.FC<AtmosphericProps> = ({
-  imageUrl,
   hook,
-  puzzleText,
-  answer,
+  cta,
+  imageCuts,
   voiceoverPath,
   bgMusicPath,
+  captions,
+  cliffhangerStartFrame,
+  hookDurationFrames,
 }) => {
+  const { durationInFrames } = useVideoConfig();
+  const fadeStart = durationInFrames - MUSIC_FADE_FRAMES;
+  const musicVolume = (frame: number) =>
+    interpolate(frame, [fadeStart, durationInFrames], [MUSIC_BASE, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+
   return (
     <AbsoluteFill style={{ background: theme.color.bgDark }}>
-      <KenBurnsImage src={imageUrl} />
-
-      {/* Hook 0–2s */}
-      <Sequence from={0} durationInFrames={60}>
-        <HookOverlay text={hook} from={0} to={60} />
-      </Sequence>
-
-      {/* Puzzle text 2–12s */}
-      <Sequence from={60} durationInFrames={300}>
-        <PuzzleTextBlock text={puzzleText} />
-      </Sequence>
-
-      {/* Countdown 12–15s */}
-      <Sequence from={360} durationInFrames={90}>
-        <CountdownTimer from={0} durationFrames={90} startNumber={3} />
-      </Sequence>
-
-      {/* Reveal 15–20s */}
-      <Sequence from={450} durationInFrames={150}>
-        <RevealCard from={0} answer={answer} />
-      </Sequence>
+      {/* Image is visible from frame 0 — no black slate */}
+      <MultiImageBg cuts={imageCuts} />
+      {/* Hook overlays the image (clean typography on subtle gradient) */}
+      <HookBanner text={hook} durationFrames={hookDurationFrames} />
+      <KineticCaptions words={captions} yPercent={0.55} />
+      <Cliffhanger cta={cta} startFrame={cliffhangerStartFrame} />
 
       <Audio src={voiceoverPath} />
-      <Audio src={bgMusicPath} volume={0.18} />
+      <Audio src={bgMusicPath} volume={musicVolume} />
     </AbsoluteFill>
-  );
-};
-
-const PuzzleTextBlock: React.FC<{ text: string }> = ({ text }) => {
-  const frame = useCurrentFrame();
-  const opacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
-  const y = interpolate(frame, [0, 30], [40, 0], { extrapolateRight: "clamp" });
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "0 80px",
-        opacity,
-        transform: `translateY(${y}px)`,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: theme.font.body,
-          fontSize: 68,
-          color: theme.color.textLight,
-          textAlign: "center",
-          fontWeight: 600,
-          lineHeight: 1.35,
-          textShadow: "0 4px 24px rgba(0,0,0,0.85)",
-        }}
-      >
-        {text}
-      </div>
-    </div>
   );
 };

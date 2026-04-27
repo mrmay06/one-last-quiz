@@ -1,3 +1,191 @@
 {
-  "puzzles": []
+  "puzzles": [
+    {
+      "hash": "e8f428924b35e150",
+      "title": "99% Fail This. Why Did The Bartender Pull A Gun?",
+      "video_id": null,
+      "date": "2026-04-26T08:43:46.768342+00:00"
+    },
+    {
+      "hash": "ad93ca85bc76cdc4",
+      "title": "Only 3% Solve Grandpa's Riddle | Can YOU Guess This?",
+      "video_id": null,
+      "date": "2026-04-26T08:46:43.129001+00:00"
+    },
+    {
+      "hash": "ff0ee5bdf51407e2",
+      "title": "Only 3% Solve This: Elevator Riddle Challenge | IQ Puzzle",
+      "video_id": null,
+      "date": "2026-04-26T08:50:56.589308+00:00"
+    },
+    {
+      "hash": "882748b3474df608",
+      "title": "Why does he hate the 10th floor?",
+      "video_id": null,
+      "date": "2026-04-26T10:13:59.204261+00:00"
+    },
+    {
+      "hash": "a290e69b6700c49f",
+      "title": "Only 1% See The Truth In This Voicemail",
+      "video_id": null,
+      "date": "2026-04-26T10:17:46.842259+00:00"
+    },
+    {
+      "hash": "7c72e5d94a79239a",
+      "title": "Why was the package still unopened?",
+      "video_id": null,
+      "date": "2026-04-26T12:50:10.636961+00:00"
+    },
+    {
+      "hash": "9e2f22019255f089",
+      "title": "Why must this package be opened in total darkness?",
+      "video_id": null,
+      "date": "2026-04-26T12:51:59.121732+00:00"
+    },
+    {
+      "hash": "1ece6dac5c3b2e0b",
+      "title": "Most Can't Solve This Room Puzzle | Why Can't He Leave?",
+      "video_id": null,
+      "date": "2026-04-26T13:12:31.574342+00:00"
+    },
+    {
+      "hash": "207d9cd976eebfb6",
+      "title": "Only 0.3% Solve This Dispatch Riddle | Missing Card Mystery",
+      "video_id": null,
+      "date": "2026-04-26T13:14:18.042529+00:00"
+    },
+    {
+      "hash": "280b67f26435dd30",
+      "title": "Only 1% Can Solve This Puzzling Room Riddle",
+      "video_id": null,
+      "riddle_id": "r0022",
+      "date": "2026-04-26T13:47:02.407914+00:00"
+    },
+    {
+      "hash": "ee004013d39c99bb",
+      "title": "99% Fail This: How a Kid Outsmarted Engineers",
+      "video_id": null,
+      "riddle_id": "r0025",
+      "date": "2026-04-26T13:48:43.679855+00:00"
+    },
+    {
+      "hash": "99b293634b99d0f4",
+      "title": "Only 1% Can Solve This Global Mystery Riddle",
+      "video_id": null,
+      "riddle_id": "r0037",
+      "date": "2026-04-26T17:51:29.943618+00:00"
+    },
+    {
+      "hash": "f74d9a897258c146",
+      "title": "Only 1% Solve This Car & Hotel Riddle!",
+      "video_id": null,
+      "riddle_id": "r0031",
+      "date": "2026-04-26T17:52:25.212059+00:00"
+    },
+    {
+      "hash": "380c0a3afda9504d",
+      "title": "Only 1% can solve Antony and Cleopatra's Mystery",
+      "video_id": null,
+      "riddle_id": "r0024",
+      "date": "2026-04-26T18:49:44.704735+00:00"
+    },
+    {
+      "hash": "c54075e8882cd0e7",
+      "title": "Only 130+ IQ Solve: Rooster Egg Riddle",
+      "video_id": null,
+      "riddle_id": "r0012",
+      "date": "2026-04-26T18:51:28.208490+00:00"
+    },
+    {
+      "hash": "7700bf7ba8c3caa4",
+      "title": "A Deadly Silence: Can You Solve This Riddle?",
+      "video_id": null,
+      "riddle_id": "r0051",
+      "date": "2026-04-27T08:12:48.368952+00:00"
+    },
+    {
+      "hash": "2f40d8e033dcdf4d",
+      "title": "The Deadly Dinner Riddle: Can You Solve It?",
+      "video_id": null,
+      "riddle_id": "r0006",
+      "date": "2026-04-27T08:17:01.914799+00:00"
+    },
+    {
+      "hash": "255986eb2869dad3",
+      "title": "Can You Decode This Eerie Word Puzzle?",
+      "video_id": null,
+      "riddle_id": "r0074",
+      "date": "2026-04-27T08:22:03.811882+00:00"
+    },
+    {
+      "hash": "de0bdc456a24f9d5",
+      "title": "Can You Solve the Non-Twin Sister Mystery?",
+      "video_id": null,
+      "riddle_id": "r0008",
+      "date": "2026-04-27T09:22:34.558556+00:00"
+    },
+    {
+      "hash": "2d3cb7c3237fbfc0",
+      "title": "Can You Solve This Classic Riddle?",
+      "video_id": null,
+      "riddle_id": "r0003",
+      "date": "2026-04-27T09:40:30.249085+00:00"
+    },
+    {
+      "hash": "5dd56c9ae5aaf161",
+      "title": "The Radio Riddle: Can You Solve It?",
+      "video_id": null,
+      "riddle_id": "r0062",
+      "date": "2026-04-27T10:18:55.805330+00:00"
+    },
+    {
+      "hash": "db6c7272ce72f2e4",
+      "title": "Can You Solve This Car Mystery?",
+      "video_id": null,
+      "riddle_id": "r0093",
+      "date": "2026-04-27T10:34:05.332830+00:00"
+    },
+    {
+      "hash": "36d3bbd59fb239e7",
+      "title": "Can You Solve the Mystery of the Collapsing House?",
+      "video_id": null,
+      "riddle_id": "r0094",
+      "date": "2026-04-27T10:45:24.890864+00:00"
+    },
+    {
+      "hash": "8f4845fc24c7eec0",
+      "title": "Can You Spot the Spy?",
+      "video_id": null,
+      "riddle_id": "r0096",
+      "date": "2026-04-27T10:49:52.324685+00:00"
+    },
+    {
+      "hash": "f343313cbd620ab6",
+      "title": "Can You Solve This Classic Riddle?",
+      "video_id": null,
+      "riddle_id": "r0038",
+      "date": "2026-04-27T11:07:02.495085+00:00"
+    },
+    {
+      "hash": "6525f38a06d429b8",
+      "title": "Can You Solve This Mysterious Arrest?",
+      "video_id": null,
+      "riddle_id": "r0070",
+      "date": "2026-04-27T11:11:37.764733+00:00"
+    },
+    {
+      "hash": "86d3fb0414e0a730",
+      "title": "Can You Solve This Invisible Mystery?",
+      "video_id": null,
+      "riddle_id": "r0079",
+      "date": "2026-04-27T11:26:01.498149+00:00"
+    },
+    {
+      "hash": "c85da3a040225d81",
+      "title": "Can You Solve This Murder Mystery?",
+      "video_id": null,
+      "riddle_id": "r0041",
+      "date": "2026-04-27T11:50:18.894045+00:00"
+    }
+  ]
 }

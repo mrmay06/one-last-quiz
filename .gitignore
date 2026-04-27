@@ -25,3 +25,5 @@ Thumbs.db
 
 # Remotion
 remotion/out/
+scripts/client_secret.json
+remotion/public/run/

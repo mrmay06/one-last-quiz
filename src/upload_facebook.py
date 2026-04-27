@@ -66,9 +66,9 @@ class FacebookPublisher:
         log.info("FB Reels: binary uploaded (%d bytes)", size)
 
         # Phase 3: finish + publish
-        description = (
-            f"{metadata['youtube_title']}\n\n{metadata['youtube_description']}"
-        )
+        caption = metadata.get("facebook_caption", metadata["youtube_title"])
+        hashtags = " ".join(metadata.get("facebook_hashtags", []))
+        description = f"{caption}\n\n{hashtags}".strip()
         finish = requests.post(
             f"{GRAPH}/{page_id}/video_reels",
             params={
@@ -76,6 +76,7 @@ class FacebookPublisher:
                 "video_id": video_id,
                 "video_state": "PUBLISHED",
                 "description": description,
+                "thumb_offset": 3000,  # pick frame at 3s — past hook, images visible
                 "access_token": token,
             },
             timeout=60,
@@ -84,3 +85,26 @@ class FacebookPublisher:
         url = f"https://www.facebook.com/reel/{video_id}"
         log.info("FB Reels: published %s", url)
         return url
+
+    def post_pinned_comment(self, video_id: str, comment_text: str) -> None:
+        if not (config.FACEBOOK_PAGE_ID and config.FACEBOOK_PAGE_ACCESS_TOKEN):
+            return
+
+        token = config.FACEBOOK_PAGE_ACCESS_TOKEN
+        body = (
+            "🔒 ANSWER (spoiler — read at your own risk) ↓\n\n"
+            "‎ \n‎ \n‎ \n"
+            f"{comment_text}"
+        )
+
+        resp = requests.post(
+            f"{GRAPH}/{video_id}/comments",
+            params={"access_token": token, "message": body},
+            timeout=30,
+        )
+        try:
+            resp.raise_for_status()
+            comment_id = resp.json().get("id", "unknown")
+            log.info("FB Reels: posted answer comment (ID %s)", comment_id)
+        except requests.RequestException as exc:
+            log.warning("FB Reels: comment post failed: %s", exc)

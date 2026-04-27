@@ -1,10 +1,7 @@
-Style instructions for Gemini 2.5 Flash TTS:
+## Gemini 2.5 Flash TTS — voice direction
 
-"Speak as a deep, gravelly UK male narrator in the style of a BBC documentary host or a British detective in a noir film. Slow, deliberate pacing. Mysterious and authoritative tone. Pause meaningfully on key words. Lower the pitch for the reveal at the end. Never theatrical or over-the-top — controlled menace. Pace: roughly 130 words per minute. Add small natural pauses where commas and ellipses appear in the script."
+"Read this naturally — like you're telling a friend a wild story they've never heard. Conversational warmth, not narration. Put weight on the surprising details. Slight pause where there are commas, brief beats at sentence ends. Don't sound like an audiobook or a news anchor. Sound like a real person."
 
-Voice selection priority (use the first that exists in current Gemini TTS API):
-1. "Charon" — deep narrator
-2. "Fenrir" — gravelly
-3. "Orus" — authoritative
+Voice: **Algieba** (locked in `src/config.py` as `DEFAULT_VOICE`) — smoother and more human than Puck.
 
-Default locked in src/config.py: DEFAULT_VOICE = "Charon".
+Post-processing: ffmpeg `atempo=1.05` is applied (light, just to tighten pacing without going chipmunk).

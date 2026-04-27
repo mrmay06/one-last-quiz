@@ -17,6 +17,8 @@ ASSETS_DIR = ROOT / "assets"
 MUSIC_DIR = ASSETS_DIR / "music"
 PROMPTS_DIR = ROOT / "prompts"
 REMOTION_DIR = ROOT / "remotion"
+REMOTION_PUBLIC = REMOTION_DIR / "public"
+REMOTION_RUN_DIR = REMOTION_PUBLIC / "run"  # Generated assets land here so Remotion can serve them
 
 USED_PUZZLES_FILE = DATA_DIR / "used_puzzles.json"
 LAST_TEMPLATE_FILE = DATA_DIR / "last_template.txt"
@@ -24,29 +26,31 @@ ERRORS_LOG = DATA_DIR / "errors.log"
 
 # --- API keys ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 POLLINATIONS_API_KEY = os.getenv("POLLINATIONS_API_KEY", "")
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
 
 # YouTube
 YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID", "")
 YOUTUBE_CLIENT_SECRET = os.getenv("YOUTUBE_CLIENT_SECRET", "")
 YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN", "")
 
-# Facebook (Phase 2 — disabled by default)
+# Facebook (optional)
 FACEBOOK_ENABLED = os.getenv("FACEBOOK_ENABLED", "false").lower() == "true"
 FACEBOOK_PAGE_ID = os.getenv("FACEBOOK_PAGE_ID", "")
 FACEBOOK_PAGE_ACCESS_TOKEN = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "")
 
 # --- Models ---
-GEMINI_TEXT_MODEL = "gemini-2.5-flash"
-GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
+OPENAI_TEXT_MODEL = "gpt-4o"
 GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts"
+DEFAULT_VOICE = "Fenrir"
 
-# Locked default voice — first match from priority list per voice_style.md
-DEFAULT_VOICE = "Charon"
+# Lower value = more natural human delivery.
+VOICE_SPEED = 1.05
 
 # --- Pipeline ---
-TEMPLATE_CYCLE = ["atmospheric", "imessage", "iq"]
-RECENT_HASH_WINDOW = 30  # how many recent puzzles Gemini sees to avoid duplicates
+# V2 intentionally ships a single atmospheric template.
+TEMPLATE_CYCLE = ["atmospheric"]
 PUZZLE_HASH_LEN = 16  # SHA256 prefix length
 
 # Validation thresholds
@@ -57,10 +61,12 @@ MIN_VOICE_SECONDS = 2.0
 SCRIPT_GEN_RETRIES = 3
 POLLINATIONS_RETRIES = 1
 VOICE_RETRIES = 1
-DUPLICATE_RETRIES = 3
 
 # Render
-RENDER_CONCURRENCY = int(os.getenv("RENDER_CONCURRENCY", "1"))
+FPS = 30
+RENDER_BUFFER_SECONDS = 1.5  # extra after voice ends for cliffhanger to land
+MIN_VIDEO_SECONDS = 15.0
+MAX_VIDEO_SECONDS = 60.0  # safety rail only — not an editorial limit
 
 # --- Logging ---
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

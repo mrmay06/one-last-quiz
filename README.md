@@ -1,50 +1,67 @@
-# One Last Quiz
+# One Last Quiz V2
 
-Fully automated YouTube Shorts (+ optional Facebook Reels) channel. Publishes 2 ego-bait riddle videos per day with zero human intervention.
+Atmospheric-only YouTube Shorts pipeline for riddle videos. Each run picks a curated riddle, rewrites it into short-form copy, generates a timed image plan, creates narration, aligns captions, renders a vertical MP4 in Remotion, and uploads it.
 
-**Stack:** Python 3.11 · Gemini 2.5 Flash · Pollinations · Remotion v4 · GitHub Actions
+**Stack:** Python 3.11 · GPT-4o · Gemini TTS · Pollinations · Remotion v4 · GitHub Actions
 
----
+## Product Scope
 
-## How it works
+V2 is intentionally narrow:
+- one active template: `atmospheric`
+- one script path: riddle bank -> GPT rewrite -> 3-4 image prompts
+- one renderer: `AtmosphericPuzzle`
+- one primary publisher: YouTube Shorts
+- optional secondary publisher: Facebook Reels
 
-```
-cron (2× daily)
-   │
-   ▼
-orchestrator.py
-   │
-   ├── pick template   (atmospheric → imessage → iq → repeat)
-   ├── script_gen      (Gemini 2.5 Flash → puzzle JSON)
-   ├── image_gen       (Pollinations Flux → 1 image; Gemini fallback)
-   ├── voice_gen       (Gemini TTS Charon → narration)
-   ├── music_picker    (random from assets/music/)
-   ├── video_render    (Remotion → 1080×1920 MP4)
-   ├── publishers      (YouTube + optional Facebook)
-   └── puzzle_store    (log hash + commit back to repo)
-```
+The riddle bank is the source of puzzle logic. GPT does not invent riddles; it packages them for Shorts and creates the image plan.
 
-The **puzzle JSON is the single source of truth** — every downstream module reads from it. Want a different channel concept? Swap `prompts/script_system.md` and the Remotion templates; the pipeline is content-agnostic.
+## Runtime Flow
 
----
-
-## Project structure
-
-```
-src/                     Python pipeline (one file per stage)
-remotion/                Remotion video project (3 templates, 6 components)
-prompts/                 Locked prompts for Gemini
-assets/music/            Local Pixabay tracks (you supply)
-data/                    State: used_puzzles.json, last_template.txt
-scripts/                 One-time helpers
-.github/workflows/       Daily cron
+```text
+cron / manual run
+  -> src/orchestrator.py
+  -> src/riddle_bank.py        pick unused atmospheric riddle
+  -> src/script_gen.py         GPT-4o rewrite + image_prompts[]
+  -> src/image_gen.py          Pollinations image generation
+  -> src/voice_gen.py          Gemini TTS voiceover
+  -> src/captions.py           word-level alignment
+  -> src/music_picker.py       random local music bed
+  -> src/video_render.py       Remotion render
+  -> src/thumbnail.py          hook-based thumbnail
+  -> src/upload_youtube.py     upload + thumbnail + answer comment
+  -> data/used_puzzles.json    log usage
 ```
 
----
+## Project Structure
 
-## One-time setup
+```text
+src/                     Python pipeline
+remotion/                Remotion render project
+prompts/                 Locked prompt assets for script + voice + image style
+assets/music/            Local royalty-free music library
+data/                    Riddle bank, usage log, and error log
+scripts/                 One-off helpers
+.github/workflows/       Scheduled automation
+```
 
-### 1. Clone + install
+## Required Secrets
+
+Add these to your local `.env` and to GitHub Actions secrets:
+
+| Secret | Required | Purpose |
+|---|---|---|
+| `OPENAI_API_KEY` | yes | script generation |
+| `GEMINI_API_KEY` | yes | TTS generation |
+| `POLLINATIONS_API_KEY` | optional | authenticated image requests |
+| `YOUTUBE_CLIENT_ID` | yes | YouTube upload OAuth |
+| `YOUTUBE_CLIENT_SECRET` | yes | YouTube upload OAuth |
+| `YOUTUBE_REFRESH_TOKEN` | yes | YouTube upload OAuth |
+| `FACEBOOK_ENABLED` | optional | enable Facebook publishing |
+| `FACEBOOK_PAGE_ID` | optional | Facebook Reels |
+| `FACEBOOK_PAGE_ACCESS_TOKEN` | optional | Facebook Reels |
+
+## Local Setup
+
 ```bash
 git clone https://github.com/mrmay06/one-last-quiz.git
 cd one-last-quiz
@@ -52,107 +69,30 @@ pip install -r requirements.txt
 cd remotion && npm install && cd ..
 ```
 
-### 2. Download BG music
-Add 30 mysterious/ambient tracks (MP3, royalty-free from Pixabay) to `assets/music/`. The picker chooses one randomly per run.
+Add MP3 music files to `assets/music/`.
 
-### 3. Get YouTube refresh token
-1. Create a Google Cloud project → enable **YouTube Data API v3**
-2. Create OAuth 2.0 Client ID (**Desktop app**) → download as `scripts/client_secret.json`
-3. Run:
-   ```bash
-   python scripts/get_refresh_token.py
-   ```
-4. Sign in with the channel's Google account → token prints to terminal.
-
-### 4. Add GitHub secrets
-Settings → Secrets → Actions:
-
-| Secret | Required |
-|---|---|
-| `GEMINI_API_KEY` | ✅ |
-| `POLLINATIONS_API_KEY` | ✅ |
-| `YOUTUBE_CLIENT_ID` | ✅ |
-| `YOUTUBE_CLIENT_SECRET` | ✅ |
-| `YOUTUBE_REFRESH_TOKEN` | ✅ |
-| `FACEBOOK_ENABLED` | optional (set `true` to enable) |
-| `FACEBOOK_PAGE_ID` | optional |
-| `FACEBOOK_PAGE_ACCESS_TOKEN` | optional |
-
-### 5. First run
-Actions tab → **Daily Video Generation** → **Run workflow** → verify the video lands on YouTube (initially set `privacyStatus` to `unlisted` in `upload_youtube.py` for testing if you want to preview).
-
----
-
-## Local testing
+To generate a YouTube refresh token:
 
 ```bash
-# Just the script generation
-python -m src.script_gen
-
-# Full pipeline minus uploads (writes tmp/output.mp4)
-python -m src.orchestrator --skip-upload
-
-# Preview templates in Remotion Studio
-cd remotion && npm run studio
+python scripts/get_refresh_token.py
 ```
 
----
+## Local Commands
 
-## Schedule
+```bash
+python -m src.script_gen
+python -m src.orchestrator --skip-upload
+cd remotion && npm run studio
+cd remotion && npm run lint
+```
 
-Two crons in `.github/workflows/daily.yml`:
-- `30 20 * * *` UTC = 02:00 IST
-- `0 1 * * *` UTC = 06:30 IST
+## What Changed In V2
 
-Each run = 1 video.
+V2 removes the dormant multi-template surface from the shipped path. The codebase now reflects the actual product instead of carrying inactive `found_format` and `iq` branches through docs, config, and rendering.
 
----
+## Notes
 
-## Costs
-
-| Item | Cost |
-|---|---|
-| Gemini 2.5 Flash (script + TTS) | ~$0.005/run |
-| Pollinations | free tier |
-| Remotion render | free (GitHub Actions) |
-| YouTube API | free (1600 units/upload, 10k/day quota) |
-| **Total** | **< $1/month for 2/day** |
-
----
-
-## Adding a new channel (template reuse)
-
-The pipeline is content-agnostic. To create a different channel (e.g. "History Facts" or a Hindi version):
-
-1. Fork this repo
-2. Edit `prompts/script_system.md` — change topic + tone
-3. Edit `prompts/voice_style.md` — change narrator personality
-4. Edit `remotion/src/templates/` — adjust visuals/branding
-5. Update channel name + secrets
-
-The orchestrator, image gen, voice gen, render, and upload code never changes.
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| `No .mp3 tracks in assets/music/` | Add MP3s to `assets/music/` |
-| Gemini JSON parse errors | Check `data/errors.log`; retries handle most cases |
-| Pollinations returns HTML error | Falls back to Gemini Image automatically |
-| Remotion render hangs on Actions | `npx remotion browser ensure` step pulls Chrome — re-run |
-| YouTube `quotaExceeded` | 1600 units/upload × 6 = daily ceiling. Hard limit. |
-
----
-
-## Out of scope (do not add without PRD update)
-- Instagram / TikTok publishing
-- Comment automation
-- Analytics dashboards
-- Database (JSON-only by design)
-- AI video gen (Veo/Kling)
-
----
-
-Built with the One Last Quiz PRD v1.0.
+- Generated Remotion assets are written to `remotion/public/run/` at runtime.
+- Final video is written to `tmp/output.mp4`.
+- `data/used_puzzles.json` is committed back by the GitHub Action to avoid repeats.
+- The YouTube answer comment is posted automatically, but true pinning still has to be done manually in YouTube Studio.

@@ -64,6 +64,12 @@ def ensure_tmp() -> Path:
     return config.TMP_DIR
 
 
+def ensure_run_dir() -> Path:
+    """Generated assets that Remotion must serve go here."""
+    config.REMOTION_RUN_DIR.mkdir(parents=True, exist_ok=True)
+    return config.REMOTION_RUN_DIR
+
+
 def log_error(message: str) -> None:
     """Append a line to data/errors.log so failures are visible in repo."""
     config.DATA_DIR.mkdir(parents=True, exist_ok=True)

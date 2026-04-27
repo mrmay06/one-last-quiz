@@ -3,132 +3,162 @@ from __future__ import annotations
 
 import argparse
 import logging
-import shutil
 import sys
 from pathlib import Path
 from typing import Any
 
 from src import (
+    captions as captions_mod,
     config,
     image_gen,
     music_picker,
     puzzle_store,
     script_gen,
+    thumbnail as thumb_mod,
     video_render,
     voice_gen,
 )
 from src.publishers import Publisher
 from src.upload_facebook import FacebookPublisher
 from src.upload_youtube import YouTubePublisher
-from src.utils import ensure_tmp, log_error, retry
+from src.utils import ensure_tmp, log_error
 
 log = logging.getLogger(__name__)
 
 
-def _build_props(template: str, script: dict[str, Any], images: list[Path], voice: Path, music: Path) -> dict[str, Any]:
-    """Shape the props that Remotion expects per template."""
-    base = {
-        "voiceoverPath": str(voice.resolve()),
-        "bgMusicPath": str(music.resolve()),
-        "hook": script["hook"],
-        "youtubeTitle": script["youtube_title"],
+def _rel(p: Path) -> str:
+    """Path remotion serves at: /public/<rel>."""
+    return "/public/" + p.relative_to(config.REMOTION_PUBLIC).as_posix()
+
+
+def _compute_durations(voice_seconds: float) -> dict[str, int]:
+    """Decide video length and key frame timings from voice length."""
+    fps = config.FPS
+    voice_frames = int(round(voice_seconds * fps))
+    buffer_frames = int(round(config.RENDER_BUFFER_SECONDS * fps))
+    total = voice_frames + buffer_frames
+    total = max(int(config.MIN_VIDEO_SECONDS * fps), min(int(config.MAX_VIDEO_SECONDS * fps), total))
+    return {
+        "totalFrames": total,
+        "hookDurationFrames": min(int(2.5 * fps), total // 4),
+        "cliffhangerStartFrame": total - buffer_frames,
     }
-    if template == "atmospheric":
-        base.update(
-            {
-                "imageUrl": str(images[0].resolve()) if images else "",
-                "puzzleText": script["puzzle_text"],
-                "answer": script["answer"],
-            }
-        )
-    elif template == "imessage":
-        base.update(
-            {
-                "imageUrl": str(images[0].resolve()) if images else "",
-                "contactName": script.get("contact_name", "Unknown"),
-                "messages": script.get("messages", []),
-                "answer": script["answer"],
-            }
-        )
-    elif template == "iq":
-        base.update(
-            {
-                "iqData": script["iq_data"],
-                "answer": script["answer"],
-            }
-        )
-    return base
+
+
+def _build_image_cuts(prompts: list[dict[str, Any]], images: list[Path], total_frames: int) -> list[dict[str, Any]]:
+    """Convert image prompts (with cut_at_second) into frame-cut timing."""
+    cuts: list[dict[str, Any]] = []
+    if not prompts or not images:
+        return cuts
+    for i, prompt in enumerate(prompts[: len(images)]):
+        cut_sec = prompt.get("cut_at_second", 0) if isinstance(prompt, dict) else 0
+        cut_frame = max(0, min(total_frames - 30, int(cut_sec * config.FPS)))
+        cuts.append({"src": _rel(images[i]), "cutAtFrame": cut_frame})
+    cuts.sort(key=lambda cut: cut["cutAtFrame"])
+    if cuts and cuts[0]["cutAtFrame"] != 0:
+        cuts[0]["cutAtFrame"] = 0
+    return cuts
+
+
+def _build_props(
+    script: dict[str, Any],
+    images: list[Path],
+    voice: Path,
+    music: Path,
+    word_timings: list[dict[str, Any]],
+    durations: dict[str, int],
+) -> dict[str, Any]:
+    return {
+        "voiceoverPath": _rel(voice),
+        "bgMusicPath": _rel(music),
+        "hook": script["hook"],
+        "cta": script["cta"],
+        "captions": word_timings,
+        "totalFrames": durations["totalFrames"],
+        "hookDurationFrames": durations["hookDurationFrames"],
+        "cliffhangerStartFrame": durations["cliffhangerStartFrame"],
+        "imageCuts": _build_image_cuts(script.get("image_prompts", []), images, durations["totalFrames"]),
+    }
 
 
 def _publishers() -> list[Publisher]:
-    pubs: list[Publisher] = [YouTubePublisher()]
+    pubs: list[Publisher] = []
+    if config.YOUTUBE_REFRESH_TOKEN:
+        pubs.append(YouTubePublisher())
     if config.FACEBOOK_ENABLED:
         pubs.append(FacebookPublisher())
     return pubs
-
-
-@retry(attempts=config.DUPLICATE_RETRIES, base_delay=1.0, exceptions=(ValueError,))
-def _generate_unique_script(template: str) -> dict[str, Any]:
-    script = script_gen.generate(template)
-    if puzzle_store.is_duplicate(script["puzzle_text"]):
-        raise ValueError("duplicate puzzle generated; retrying")
-    return script
 
 
 def run(skip_upload: bool = False) -> None:
     config.setup_logging()
     ensure_tmp()
 
-    # Step 1: pick template
     template = puzzle_store.next_template()
+    if template != "atmospheric":
+        raise RuntimeError(f"Unsupported template in V2: {template}")
     log.info("=== Pipeline start: template=%s ===", template)
 
-    # Step 2: generate script
-    script = _generate_unique_script(template)
+    script = script_gen.generate(template)
 
-    # Step 3: images (atmospheric/imessage only)
     images: list[Path] = []
-    if template in ("atmospheric", "imessage"):
-        prompts = script.get("image_prompts") or []
-        if prompts:
-            images = image_gen.generate_images(prompts)
+    image_prompts = script.get("image_prompts") or []
+    if image_prompts:
+        prompts_only = [p["prompt"] if isinstance(p, dict) else p for p in image_prompts]
+        images = image_gen.generate_images(prompts_only)
 
-    # Step 4: voice
-    voice = voice_gen.generate_voice(script["voiceover_script"])
-
-    # Step 5: music
+    voice, voice_duration = voice_gen.generate_voice(script["voiceover_script"])
+    word_timings = captions_mod.align(voice)
     music = music_picker.pick_track()
-
-    # Step 6: render
-    props = _build_props(template, script, images, voice, music)
+    durations = _compute_durations(voice_duration)
+    props = _build_props(script, images, voice, music, word_timings, durations)
     video = video_render.render(template, props)
 
-    # Step 7: upload to enabled publishers
+    first_image = images[0] if images else None
+    thumb = thumb_mod.generate(script["hook"], first_image)
+
     video_id: str | None = None
     if not skip_upload:
         for pub in _publishers():
             try:
                 url = pub.publish(video, {**script, "privacy": "public"})
                 log.info("[%s] %s", pub.name, url)
+                pub_video_id = url.rsplit("/", 1)[-1]
                 if pub.name == "youtube":
-                    video_id = url.rsplit("/", 1)[-1]
+                    video_id = pub_video_id
+                    if hasattr(pub, "set_thumbnail"):
+                        try:
+                            pub.set_thumbnail(video_id, thumb)
+                        except Exception as exc:
+                            log.warning("Thumbnail set failed: %s", exc)
+                # Post pinned answer comment on every platform that supports it
+                if hasattr(pub, "post_pinned_comment"):
+                    try:
+                        pub.post_pinned_comment(pub_video_id, script.get("pinned_comment", script["answer"]))
+                    except Exception as exc:
+                        log.warning("[%s] Pinned comment failed: %s", pub.name, exc)
             except Exception as exc:
                 log_error(f"{pub.name} upload failed: {exc}")
                 log.exception("[%s] upload failed", pub.name)
     else:
         log.info("--skip-upload set; skipping publishers")
 
-    # Step 8: log puzzle
-    puzzle_store.append(script["puzzle_text"], script["youtube_title"], video_id)
+    puzzle_store.append(
+        script["puzzle_text"],
+        script["youtube_title"],
+        video_id=video_id,
+        riddle_id=script.get("riddle_id"),
+    )
     puzzle_store.commit_template(template)
 
-    # Step 9: cleanup
-    if config.TMP_DIR.exists():
+    if config.REMOTION_RUN_DIR.exists():
+        for f in config.REMOTION_RUN_DIR.iterdir():
+            if f.is_file():
+                f.unlink()
+    if not skip_upload and config.TMP_DIR.exists():
         for f in config.TMP_DIR.iterdir():
             if f.is_file():
                 f.unlink()
-            elif f.is_dir():
-                shutil.rmtree(f)
 
     log.info("=== Pipeline complete ===")
 

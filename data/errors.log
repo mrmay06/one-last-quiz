@@ -1,0 +1,10 @@
+2026-04-26 13:58:39 pipeline aborted: Remotion render failed (exit 1)
+2026-04-26 14:01:03 pipeline aborted: Remotion render failed (exit 1)
+2026-04-26 14:05:22 pipeline aborted: Remotion render failed (exit 1)
+2026-04-26 14:14:56 pipeline aborted: Remotion render failed (exit 1)
+2026-04-27 00:20:00 pipeline aborted: Connection error.
+2026-04-27 15:16:09 pipeline aborted: voiceover word count 21 out of range
+2026-04-27 15:55:01 pipeline aborted: 402 Client Error: Payment Required for url: https://gen.pollinations.ai/image/The%20landing%20gear%20of%20a%20plane%20opening%20mid-air%2C%20a%20body%20silhouetted%20against%20the%20sky%2C%20suspenseful%20and%20cinematic?width=1080&height=1920&model=klein&seed=3909548&enhance=false&nologo=true&key=sk_AF6UOY9CGsuVtEdkPK54ckLFg2tjLVTL
+2026-04-27 15:55:17 pipeline aborted: 402 Client Error: Payment Required for url: https://gen.pollinations.ai/image/A%20tall%2C%20ominous%20building%20under%20a%20cloudy%20sky%2C%20viewed%20from%20the%20ground%20looking%20up%2C%20creating%20a%20sense%20of%20foreboding%20and%20tension.?width=1080&height=1920&model=klein&seed=5486593&enhance=false&nologo=true&key=sk_AF6UOY9CGsuVtEdkPK54ckLFg2tjLVTL
+2026-04-27 16:42:11 pipeline aborted: voiceover leaks answer (8/11 answer words)
+2026-04-27 17:01:35 pipeline aborted: voiceover leaks answer (6/8 answer words)

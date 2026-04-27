@@ -1,14 +1,11 @@
 """Read/write used puzzle hashes + template rotation state."""
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timezone
 from typing import Any
 
 from src import config
 from src.utils import puzzle_hash, read_json, write_json
-
-log = logging.getLogger(__name__)
 
 
 def load_used() -> list[dict[str, Any]]:
@@ -16,18 +13,7 @@ def load_used() -> list[dict[str, Any]]:
     return data.get("puzzles", [])
 
 
-def recent_hashes(n: int = config.RECENT_HASH_WINDOW) -> list[str]:
-    """Return last N puzzle hashes (newest last)."""
-    used = load_used()
-    return [p["hash"] for p in used[-n:]]
-
-
-def is_duplicate(text: str) -> bool:
-    h = puzzle_hash(text)
-    return any(p["hash"] == h for p in load_used())
-
-
-def append(text: str, title: str, video_id: str | None = None) -> str:
+def append(text: str, title: str, video_id: str | None = None, riddle_id: str | None = None) -> str:
     h = puzzle_hash(text)
     used = load_used()
     used.append(
@@ -35,6 +21,7 @@ def append(text: str, title: str, video_id: str | None = None) -> str:
             "hash": h,
             "title": title,
             "video_id": video_id,
+            "riddle_id": riddle_id,
             "date": datetime.now(timezone.utc).isoformat(),
         }
     )

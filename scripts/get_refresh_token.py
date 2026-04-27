@@ -28,7 +28,7 @@ def main() -> int:
         return 1
 
     flow = InstalledAppFlow.from_client_secrets_file(str(SECRET_FILE), SCOPES)
-    creds = flow.run_local_server(port=0, prompt="consent", access_type="offline")
+    creds = flow.run_local_server(port=8080, prompt="consent", access_type="offline")
 
     print()
     print("=" * 60)

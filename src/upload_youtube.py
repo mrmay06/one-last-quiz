@@ -14,7 +14,10 @@ from src import config
 
 log = logging.getLogger(__name__)
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+]
 
 
 class YouTubePublisher:
@@ -34,12 +37,11 @@ class YouTubePublisher:
 
     def publish(self, video_path: Path, metadata: dict[str, Any]) -> str:
         title = metadata["youtube_title"]
-        # Ensure #shorts is in the title or description so YT classifies as Short
         if "#shorts" not in title.lower():
             title = f"{title} #shorts"
         description = (
             f"{metadata['youtube_description']}\n\n"
-            "#shorts #riddle #iq #brainteaser"
+            "#shorts #riddle #brainteaser #puzzle"
         )
         body = {
             "snippet": {
@@ -66,3 +68,31 @@ class YouTubePublisher:
         url = f"https://youtube.com/shorts/{video_id}"
         log.info("YouTube upload complete: %s", url)
         return url
+
+    def set_thumbnail(self, video_id: str, thumbnail_path: Path) -> None:
+        client = self._client()
+        media = MediaFileUpload(str(thumbnail_path), mimetype="image/jpeg")
+        try:
+            client.thumbnails().set(videoId=video_id, media_body=media).execute()
+            log.info("Thumbnail set for video %s", video_id)
+        except Exception as exc:
+            log.warning("Thumbnail upload failed (channel may not be eligible yet): %s", exc)
+
+    def post_pinned_comment(self, video_id: str, comment_text: str) -> None:
+        client = self._client()
+        body = (
+            "🔒 ANSWER (spoiler — read at your own risk) ↓\n\n"
+            "‎ \n‎ \n‎ \n"
+            f"{comment_text}"
+        )
+        thread = client.commentThreads().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "videoId": video_id,
+                    "topLevelComment": {"snippet": {"textOriginal": body}},
+                }
+            },
+        ).execute()
+        comment_id = thread["snippet"]["topLevelComment"]["id"]
+        log.info("Pinned-comment posted (ID %s) — pin manually in Studio if needed", comment_id)

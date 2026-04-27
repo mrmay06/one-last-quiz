@@ -1,4 +1,4 @@
-"""Invoke Remotion CLI to render the MP4."""
+"""Invoke Remotion to render the atmospheric MP4."""
 from __future__ import annotations
 
 import json
@@ -11,30 +11,23 @@ from src import config
 from src.utils import ensure_tmp
 
 log = logging.getLogger(__name__)
-
-TEMPLATE_TO_COMPOSITION = {
-    "atmospheric": "AtmosphericPuzzle",
-    "imessage": "FakeIMessage",
-    "iq": "IQTest",
-}
+ATMOSPHERIC_COMPOSITION = "AtmosphericPuzzle"
 
 
 def render(template: str, props: dict[str, Any]) -> Path:
     """Render the video. Returns path to output mp4."""
-    composition = TEMPLATE_TO_COMPOSITION[template]
-    out = ensure_tmp() / "output.mp4"
+    if template != "atmospheric":
+        raise ValueError(f"Unsupported template: {template}")
 
+    out = ensure_tmp() / "output.mp4"
     cmd = [
-        "npx",
-        "remotion",
-        "render",
-        "src/index.ts",
-        composition,
+        "node",
+        "render.mjs",
+        ATMOSPHERIC_COMPOSITION,
         str(out.resolve()),
-        f"--props={json.dumps(props)}",
-        f"--concurrency={config.RENDER_CONCURRENCY}",
+        json.dumps(props),
     ]
-    log.info("Rendering: composition=%s", composition)
+    log.info("Rendering: composition=%s", ATMOSPHERIC_COMPOSITION)
     result = subprocess.run(
         cmd,
         cwd=config.REMOTION_DIR,

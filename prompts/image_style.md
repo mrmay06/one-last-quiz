@@ -1,16 +1,33 @@
 # Image Style Guide
 
-All images for the "One Last Quiz" channel should reinforce a **mysterious, cinematic, atmospheric** mood. Pollinations + Flux model.
+All generated images support the One Last Quiz V2 video pipeline as vertical backgrounds.
 
-## Universal modifiers to append to every prompt
-- `cinematic, vertical 9:16 composition, moody lighting, low-key, deep shadows`
-- `subtle film grain, desaturated except for warm key light`
-- `8k detail, ultra-realistic, no text, no watermark, no logo`
+## Core Principle
 
-## Per-template guidance
-- **AtmosphericPuzzle**: scene that hints at the puzzle without spoiling it. Empty rooms, a single object lit dramatically, foggy outdoors, vintage interiors.
-- **FakeIMessage**: dim domestic scene used as blurred BG only — bedside table, dark hallway, kitchen at night.
-- **IQTest**: not used (rendered fully in SVG).
+Images are **riddle-driven, not theme-driven**. Each image prompt should come directly from the riddle's setting, situation, and tone — not from a fixed aesthetic preset.
+
+## Required qualities
+
+- vertical 9:16 composition
+- visually engaging and specific to the riddle
+- room for on-screen text overlays (avoid busy center compositions)
+- no text, watermark, or logo in the image
+- no close-up humans unless the riddle genuinely requires it
+
+## What to aim for
+
+- Scenes, objects, or environments that the riddle describes or implies
+- The tone the riddle evokes — suspenseful, whimsical, eerie, playful, etc.
+- Visual beats that build curiosity without revealing the answer
+- Enough negative space for captions and hook text
+
+## What to avoid
+
+- Generic stock-photo-style imagery unrelated to the riddle
+- Defaulting to dark/moody/shadowy when the riddle doesn't call for it
+- Images that strongly hint at or reveal the answer
+- Overly literal depictions that give everything away
 
 ## Negative prompt baseline
+
 `text, captions, watermark, logo, blurry, low quality, distorted faces, extra limbs`
