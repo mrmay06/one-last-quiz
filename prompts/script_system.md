@@ -58,7 +58,7 @@ End the voiceover with **2 short punchy lines** combining 2–3 of these intents
 
 ## Image Prompt Rules
 
-Generate **3-4 image prompts** that match the specific riddle — not a generic theme.
+Generate **3-4 image prompts** based **only on the riddle question and its setting** — completely ignore the `answer` field when writing image prompts.
 
 Each `image_prompts` item must be an object:
 
@@ -68,21 +68,13 @@ Each `image_prompts` item must be an object:
 
 Image prompts should:
 - Be highly descriptive and cinematic. Specify lighting, camera angle, atmosphere, textures, and rich visual details.
-- Show the *setting* or the *setup* of the riddle ONLY.
-- Work as vertical 9:16 backgrounds
-- Avoid close-up humans unless the riddle genuinely needs it
+- Show the *setting* or *context* of the riddle ONLY — never hint at the solution.
+- Work as vertical 9:16 backgrounds.
+- Avoid close-up humans unless the riddle genuinely needs it.
+- No text, labels, watermarks, or logos.
 
-**ANTI-SPOILER RULES (CRITICAL):**
-- NEVER include the answer object, character, or twist in the visual prompts.
-- If the answer is "ice", do not prompt for melting water or puddles.
-- If the answer is "a shadow", do not prompt for prominent shadows.
-- Keep the images purely atmospheric and moody. The images should set the vibe without giving away a single clue.
-- Avoid text, labels, or captions in the image.
-
-Image prompts should NOT:
-- Include watermarks or logos
-
-Think in visual beats. What are the 3-4 most vivid, non-spoiler moments or settings from this riddle? Turn those into rich, descriptive image scenes (e.g., instead of "a hospital room", write "A dimly lit hospital emergency room at midnight, harsh fluorescent lights casting long shadows, empty beds with rumpled blue sheets, eerie and suspenseful atmosphere, cinematic photography").
+**CRITICAL — ANSWER BLINDNESS:**
+When writing image prompts, pretend the `answer` field does not exist. Base every image 100% on the riddle question/setup alone. The images are scene-setting only — they must never point toward or away from the answer.
 
 ## Output JSON
 
@@ -96,8 +88,8 @@ Return JSON only.
   "voiceover_script": "string",
   "cta": "string",
   "puzzle_text": "string",
-  "answer": "string",
-  "pinned_comment": "string",
+  "answer": "string — the actual answer to the riddle, plain text",
+  "pinned_comment": "string — REVEAL THE ANSWER HERE. 1-2 sentences: state the answer clearly, then briefly explain why. Example: 'The answer is a shadow. It always follows you but disappears in the dark.'",
   "image_prompts": [
     { "prompt": "string", "cut_at_second": 0 },
     { "prompt": "string", "cut_at_second": 5 },
@@ -105,7 +97,7 @@ Return JSON only.
   ],
   "youtube_title": "string <= 70 chars",
   "youtube_description": "string",
-  "tags": ["riddle", "brainteaser", "puzzle"],
+  "tags": ["25 tags — mix of: riddle, brainteaser, puzzle, iq test, brain teaser, lateral thinking, riddles for adults, mind games, quiz, short riddle, detective riddle, logic puzzle, viral riddle, can you solve this, mystery riddle, shorts, youtubeshorts, viral shorts, challenge, trivia + 5 riddle-specific tags based on this riddle's theme"],
   "facebook_caption": "string — reel caption written for Facebook/Instagram tone. 1-3 punchy lines. Hook the reader, tease the riddle, drive comments. Do NOT copy youtube_description.",
   "facebook_hashtags": ["#riddle", "#brainteaser", "#puzzle", "#shorts"]
 }
@@ -121,8 +113,9 @@ Return JSON only.
 - answer does not appear in `voiceover_script`
 - there are 3-4 `image_prompts`
 - first `cut_at_second` is `0`
-- image prompts are riddle-specific, not generic
-- no answer-spoiling visuals
+- image prompts are based ONLY on the riddle question — answer was completely ignored
+- `pinned_comment` reveals the actual answer clearly (not a tease)
+- `tags` has 25 items
 - `facebook_caption` is present and NOT a copy of `youtube_description`
 - `facebook_hashtags` is a list of hashtag strings
 - JSON only, no markdown fences

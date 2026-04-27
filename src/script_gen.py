@@ -110,6 +110,10 @@ def _validate(data: dict[str, Any], template: str, riddle: dict[str, Any]) -> No
     if isinstance(first_prompt, dict) and first_prompt.get("cut_at_second") != 0:
         raise ValueError("first image prompt must start at cut_at_second=0")
 
+    tags = data.get("tags", [])
+    if len(tags) < 20:
+        raise ValueError(f"tags too few ({len(tags)}), need at least 20")
+
 
 def generate(template: str) -> dict[str, Any]:
     """Pick a riddle from the bank and rewrite it into an atmospheric Shorts script."""
