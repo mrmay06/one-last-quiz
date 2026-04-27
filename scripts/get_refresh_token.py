@@ -17,7 +17,7 @@ from pathlib import Path
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = ["https://www.googleapis.com/auth/youtube"]  # full scope — covers upload + comments + thumbnails
 SECRET_FILE = Path(__file__).parent / "client_secret.json"
 
 
