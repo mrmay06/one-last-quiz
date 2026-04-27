@@ -1,17 +1,18 @@
 """Gemini 2.5 Flash TTS → WAV → ffmpeg speedup → final voiceover.
 
+Uses the new google-genai SDK (replaces deprecated google-generativeai).
 Returns (path, duration_seconds) so the renderer can size the video to the voice.
 """
 from __future__ import annotations
 
-import base64
 import logging
 import shutil
 import subprocess
 import wave
 from pathlib import Path
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from src import config
 from src.utils import ensure_run_dir, retry
@@ -51,44 +52,33 @@ def _atempo(in_path: Path, out_path: Path, speed: float) -> None:
         log.warning("ffmpeg not found — skipping atempo speedup")
         shutil.copy2(in_path, out_path)
         return
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-loglevel",
-        "error",
-        "-i",
-        str(in_path),
-        "-filter:a",
-        f"atempo={speed}",
-        str(out_path),
-    ]
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(in_path), "-filter:a", f"atempo={speed}", str(out_path)]
     subprocess.run(cmd, check=True)
 
 
 @retry(attempts=config.VOICE_RETRIES + 1, base_delay=2.0, exceptions=(Exception,))
 def _generate(script: str, raw_path: Path) -> None:
-    genai.configure(api_key=config.GEMINI_API_KEY)
+    client = genai.Client(api_key=config.GEMINI_API_KEY)
     style = _load_voice_style()
     prompt = f"{style}\n\nNarrate this exactly:\n{script}"
 
-    model = genai.GenerativeModel(config.GEMINI_TTS_MODEL)
-    resp = model.generate_content(
-        prompt,
-        generation_config={
-            "response_modalities": ["AUDIO"],
-            "speech_config": {
-                "voice_config": {
-                    "prebuilt_voice_config": {"voice_name": config.DEFAULT_VOICE}
-                }
-            },
-        },
+    resp = client.models.generate_content(
+        model=config.GEMINI_TTS_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=config.DEFAULT_VOICE,
+                    )
+                )
+            ),
+        ),
     )
     for part in resp.candidates[0].content.parts:
-        if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
-            data = part.inline_data.data
-            if isinstance(data, str):
-                data = base64.b64decode(data)
-            _pcm_to_wav(data, raw_path)
+        if part.inline_data and part.inline_data.data:
+            _pcm_to_wav(part.inline_data.data, raw_path)
             return
     raise RuntimeError("Gemini TTS returned no audio")
 
