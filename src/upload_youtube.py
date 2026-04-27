@@ -24,13 +24,15 @@ class YouTubePublisher:
     name = "youtube"
 
     def _client(self):
+        # Don't pass scopes — the refresh token already encodes what was granted.
+        # Passing scopes causes Google to re-validate scope on refresh, which breaks
+        # if the token was generated with different/fewer scopes than listed here.
         creds = Credentials(
             token=None,
             refresh_token=config.YOUTUBE_REFRESH_TOKEN,
             client_id=config.YOUTUBE_CLIENT_ID,
             client_secret=config.YOUTUBE_CLIENT_SECRET,
             token_uri="https://oauth2.googleapis.com/token",
-            scopes=SCOPES,
         )
         creds.refresh(Request())
         return build("youtube", "v3", credentials=creds, cache_discovery=False)
