@@ -126,11 +126,12 @@ def run(skip_upload: bool = False) -> None:
                 pub_video_id = url.rsplit("/", 1)[-1]
                 if pub.name == "youtube":
                     video_id = pub_video_id
-                    if hasattr(pub, "set_thumbnail"):
-                        try:
-                            pub.set_thumbnail(video_id, thumb)
-                        except Exception as exc:
-                            log.warning("Thumbnail set failed: %s", exc)
+                # Set thumbnail on every platform that supports it
+                if hasattr(pub, "set_thumbnail"):
+                    try:
+                        pub.set_thumbnail(pub_video_id, thumb)
+                    except Exception as exc:
+                        log.warning("[%s] Thumbnail set failed: %s", pub.name, exc)
                 # Post pinned answer comment on every platform that supports it
                 if hasattr(pub, "post_pinned_comment"):
                     try:

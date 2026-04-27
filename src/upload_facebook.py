@@ -76,7 +76,6 @@ class FacebookPublisher:
                 "video_id": video_id,
                 "video_state": "PUBLISHED",
                 "description": description,
-                "thumb_offset": 3000,  # pick frame at 3s — past hook, images visible
                 "access_token": token,
             },
             timeout=60,
@@ -85,6 +84,24 @@ class FacebookPublisher:
         url = f"https://www.facebook.com/reel/{video_id}"
         log.info("FB Reels: published %s", url)
         return url
+
+    def set_thumbnail(self, video_id: str, thumbnail_path: Path) -> None:
+        """Upload a custom thumbnail image to the Facebook video."""
+        if not (config.FACEBOOK_PAGE_ID and config.FACEBOOK_PAGE_ACCESS_TOKEN):
+            return
+        token = config.FACEBOOK_PAGE_ACCESS_TOKEN
+        with thumbnail_path.open("rb") as f:
+            resp = requests.post(
+                f"{GRAPH}/{video_id}/thumbnails",
+                params={"access_token": token, "is_preferred": "true"},
+                files={"source": (thumbnail_path.name, f, "image/jpeg")},
+                timeout=60,
+            )
+        try:
+            resp.raise_for_status()
+            log.info("FB Reels: thumbnail set for video %s", video_id)
+        except requests.RequestException as exc:
+            log.warning("FB Reels: thumbnail upload failed: %s", exc)
 
     def post_pinned_comment(self, video_id: str, comment_text: str) -> None:
         if not (config.FACEBOOK_PAGE_ID and config.FACEBOOK_PAGE_ACCESS_TOKEN):
