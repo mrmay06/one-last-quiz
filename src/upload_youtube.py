@@ -71,22 +71,9 @@ class YouTubePublisher:
         log.info("YouTube upload complete: %s", url)
         return url
 
-    def set_thumbnail(self, video_id: str, thumbnail_path: Path) -> None:
+    def post_comment(self, video_id: str, comment_text: str) -> None:
         client = self._client()
-        media = MediaFileUpload(str(thumbnail_path), mimetype="image/jpeg")
-        try:
-            client.thumbnails().set(videoId=video_id, media_body=media).execute()
-            log.info("Thumbnail set for video %s", video_id)
-        except Exception as exc:
-            log.warning("Thumbnail upload failed (channel may not be eligible yet): %s", exc)
-
-    def post_pinned_comment(self, video_id: str, comment_text: str) -> None:
-        client = self._client()
-        body = (
-            "🔒 ANSWER (spoiler — read at your own risk) ↓\n\n"
-            "‎ \n‎ \n‎ \n"
-            f"{comment_text}"
-        )
+        body = f"🔒 ANSWER (spoiler below)\n\n{comment_text}"
         thread = client.commentThreads().insert(
             part="snippet",
             body={
@@ -97,4 +84,4 @@ class YouTubePublisher:
             },
         ).execute()
         comment_id = thread["snippet"]["topLevelComment"]["id"]
-        log.info("Pinned-comment posted (ID %s) — pin manually in Studio if needed", comment_id)
+        log.info("YouTube: answer comment posted (ID %s)", comment_id)

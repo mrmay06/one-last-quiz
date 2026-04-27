@@ -126,18 +126,18 @@ def run(skip_upload: bool = False) -> None:
                 pub_video_id = url.rsplit("/", 1)[-1]
                 if pub.name == "youtube":
                     video_id = pub_video_id
-                # Set thumbnail on every platform that supports it
-                if hasattr(pub, "set_thumbnail"):
+                # Thumbnail: FB only (YT channel not eligible yet)
+                if pub.name == "facebook" and hasattr(pub, "set_thumbnail"):
                     try:
                         pub.set_thumbnail(pub_video_id, thumb)
                     except Exception as exc:
                         log.warning("[%s] Thumbnail set failed: %s", pub.name, exc)
-                # Post pinned answer comment on every platform that supports it
-                if hasattr(pub, "post_pinned_comment"):
+                # Answer comment on every platform
+                if hasattr(pub, "post_comment"):
                     try:
-                        pub.post_pinned_comment(pub_video_id, script.get("pinned_comment", script["answer"]))
+                        pub.post_comment(pub_video_id, script.get("pinned_comment", script["answer"]))
                     except Exception as exc:
-                        log.warning("[%s] Pinned comment failed: %s", pub.name, exc)
+                        log.warning("[%s] Comment failed: %s", pub.name, exc)
             except Exception as exc:
                 log_error(f"{pub.name} upload failed: {exc}")
                 log.exception("[%s] upload failed", pub.name)

@@ -103,17 +103,11 @@ class FacebookPublisher:
         except requests.RequestException as exc:
             log.warning("FB Reels: thumbnail upload failed: %s", exc)
 
-    def post_pinned_comment(self, video_id: str, comment_text: str) -> None:
+    def post_comment(self, video_id: str, comment_text: str) -> None:
         if not (config.FACEBOOK_PAGE_ID and config.FACEBOOK_PAGE_ACCESS_TOKEN):
             return
-
         token = config.FACEBOOK_PAGE_ACCESS_TOKEN
-        body = (
-            "🔒 ANSWER (spoiler — read at your own risk) ↓\n\n"
-            "‎ \n‎ \n‎ \n"
-            f"{comment_text}"
-        )
-
+        body = f"🔒 ANSWER (spoiler below)\n\n{comment_text}"
         resp = requests.post(
             f"{GRAPH}/{video_id}/comments",
             params={"access_token": token, "message": body},
@@ -122,6 +116,6 @@ class FacebookPublisher:
         try:
             resp.raise_for_status()
             comment_id = resp.json().get("id", "unknown")
-            log.info("FB Reels: posted answer comment (ID %s)", comment_id)
+            log.info("FB Reels: answer comment posted (ID %s)", comment_id)
         except requests.RequestException as exc:
             log.warning("FB Reels: comment post failed: %s", exc)
