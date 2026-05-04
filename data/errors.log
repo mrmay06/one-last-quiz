@@ -10,3 +10,4 @@
 2026-04-27 17:01:35 pipeline aborted: voiceover leaks answer (6/8 answer words)
 2026-04-28 04:29:04 pipeline aborted: voiceover leaks answer (3/7 unique answer words)
 2026-04-29 21:41:47 pipeline aborted: 429 Client Error: Too Many Requests for url: https://gen.pollinations.ai/image/A%20quaint%2C%20old-fashioned%20front%20door%20with%20a%20brass%20knocker%2C%20surrounded%20by%20ivy%2C%20in%20soft%20evening%20light.?width=1080&height=1920&model=klein&seed=8362118&enhance=false&nologo=true&key=sk_AF6UOY9CGsuVtEdkPK54ckLFg2tjLVTL
+2026-05-04 21:43:24 youtube upload failed: ('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
